@@ -22,15 +22,16 @@
       overflow: hidden;
     }
 
-    /* Header */
+    /* Header with settings button aligned */
     .header {
       background: #0a0a0a;
-      padding: 12px 16px;
+      padding: 8px 16px;
       display: flex;
       justify-content: flex-end;
       align-items: center;
       border-bottom: 1px solid #2a2a2a;
       z-index: 100;
+      height: 56px;
     }
 
     .settings-btn {
@@ -45,6 +46,11 @@
       cursor: pointer;
       transition: all 0.2s;
       color: #fff;
+    }
+
+    .settings-btn svg {
+      width: 20px;
+      height: 20px;
     }
 
     .settings-btn:active {
@@ -361,7 +367,7 @@
 <body>
   <div class="header">
     <button class="settings-btn" id="settingsBtn">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.04.04A10 10 0 0 0 12 17.66a10 10 0 0 0 6.36-2.62l.04-.04z"/>
       </svg>
@@ -369,7 +375,6 @@
   </div>
 
   <div class="main-content">
-    <!-- Homepage -->
     <div class="homepage" id="homepage">
       <div class="search-box">
         <div class="search-input-wrapper">
@@ -385,7 +390,6 @@
       </div>
     </div>
 
-    <!-- Browser View -->
     <div class="browser-view" id="browserView">
       <div class="nav-bar">
         <button class="nav-btn" id="backBtn">←</button>
@@ -400,7 +404,6 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
   <div class="modal" id="settingsModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -409,24 +412,15 @@
       </div>
       
       <div class="setting-group">
-        <div class="group-title">PROXY SERVICE</div>
+        <div class="group-title">PROXY METHOD</div>
         <div class="setting-item">
-          <label class="setting-label">Select Proxy</label>
+          <label class="setting-label">Select Method</label>
           <select id="proxySelect">
-            <option value="ultraviolet">Ultraviolet</option>
-            <option value="scramjet">Scramjet</option>
-            <option value="cors">CORS Anywhere</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="setting-group">
-        <div class="group-title">TRANSPORTER</div>
-        <div class="setting-item">
-          <label class="setting-label">Select Transporter</label>
-          <select id="transporterSelect">
-            <option value="epoxy">Epoxy</option>
-            <option value="libcurl">Libcurl</option>
+            <option value="google translate">Google Translate Proxy</option>
+            <option value="archive">Archive.org Proxy</option>
+            <option value="yandex">Yandex Translate Proxy</option>
+            <option value="text">Text.is Proxy</option>
+            <option value="hide">Hide.me Proxy</option>
           </select>
         </div>
       </div>
@@ -453,63 +447,32 @@
   </div>
 
   <script>
-    // Working proxy configurations
-    const proxyConfigs = {
-      ultraviolet: {
-        name: 'Ultraviolet',
-        url: (target) => {
-          // Working Ultraviolet proxy endpoints
-          const endpoints = [
-            `https://uv.holyubofficial.net/${target}`,
-            `https://ultraviolet-proxy.cyclic.app/${target}`,
-            `https://uv-proxy-production.up.railway.app/${target}`
-          ];
-          return endpoints[Math.floor(Math.random() * endpoints.length)];
-        }
+    // Working proxy methods that bypass network restrictions
+    const proxyMethods = {
+      'google translate': {
+        name: 'Google Translate Proxy',
+        url: (target) => `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(target)}`,
+        bypass: true
       },
-      scramjet: {
-        name: 'Scramjet',
-        url: (target) => {
-          // Working Scramjet proxy endpoints
-          const endpoints = [
-            `https://scramjet.org/${target}`,
-            `https://sj-proxy.vercel.app/${target}`,
-            `https://scramjet-proxy.onrender.com/${target}`
-          ];
-          return endpoints[Math.floor(Math.random() * endpoints.length)];
-        }
+      'archive': {
+        name: 'Archive.org Proxy',
+        url: (target) => `https://web.archive.org/web/${target}`,
+        bypass: true
       },
-      cors: {
-        name: 'CORS Anywhere',
-        url: (target) => {
-          // Working CORS proxies
-          const endpoints = [
-            `https://cors-anywhere.herokuapp.com/${target}`,
-            `https://corsproxy.io/?${encodeURIComponent(target)}`,
-            `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`
-          ];
-          return endpoints[Math.floor(Math.random() * endpoints.length)];
-        }
-      }
-    };
-
-    const transporters = {
-      epoxy: {
-        name: 'Epoxy',
-        process: (url) => {
-          // Epoxy adds cache busting and headers
-          if (url.includes('?')) {
-            return url + '&_=' + Date.now();
-          }
-          return url + '?_=' + Date.now();
-        }
+      'yandex': {
+        name: 'Yandex Translate Proxy',
+        url: (target) => `https://translate.yandex.com/translate?lang=en&url=${encodeURIComponent(target)}`,
+        bypass: true
       },
-      libcurl: {
-        name: 'Libcurl',
-        process: (url) => {
-          // Libcurl adds user agent and referer handling
-          return url;
-        }
+      'text': {
+        name: 'Text.is Proxy',
+        url: (target) => `https://text.is/${target}`,
+        bypass: true
+      },
+      'hide': {
+        name: 'Hide.me Proxy',
+        url: (target) => `https://hide.me/en/proxy?url=${encodeURIComponent(target)}`,
+        bypass: true
       }
     };
 
@@ -519,8 +482,7 @@
       ddg: 'https://duckduckgo.com/?q='
     };
 
-    let currentProxy = 'ultraviolet';
-    let currentTransporter = 'epoxy';
+    let currentProxy = 'google translate';
     let currentEngine = 'google';
     let historyStack = [];
     let historyIndex = -1;
@@ -538,37 +500,31 @@
     // Load saved settings
     function loadSettings() {
       const savedProxy = localStorage.getItem('proxy');
-      const savedTransporter = localStorage.getItem('transporter');
       const savedEngine = localStorage.getItem('engine');
       
-      if (savedProxy && proxyConfigs[savedProxy]) currentProxy = savedProxy;
-      if (savedTransporter && transporters[savedTransporter]) currentTransporter = savedTransporter;
+      if (savedProxy && proxyMethods[savedProxy]) currentProxy = savedProxy;
       if (savedEngine) currentEngine = savedEngine;
       
       document.getElementById('proxySelect').value = currentProxy;
-      document.getElementById('transporterSelect').value = currentTransporter;
       document.getElementById('engineSelect').value = currentEngine;
       
       updateStatus();
     }
 
-    // Save settings
     function saveSettings() {
       currentProxy = document.getElementById('proxySelect').value;
-      currentTransporter = document.getElementById('transporterSelect').value;
       currentEngine = document.getElementById('engineSelect').value;
       
       localStorage.setItem('proxy', currentProxy);
-      localStorage.setItem('transporter', currentTransporter);
       localStorage.setItem('engine', currentEngine);
       
       settingsModal.classList.remove('active');
       updateStatus();
-      showMessage(`${proxyConfigs[currentProxy].name} + ${transporters[currentTransporter].name}`, 'success');
+      showMessage(`${proxyMethods[currentProxy].name} active`, 'success');
     }
 
     function updateStatus() {
-      proxyStatus.innerHTML = `● ${proxyConfigs[currentProxy].name} + ${transporters[currentTransporter].name}`;
+      proxyStatus.innerHTML = `● ${proxyMethods[currentProxy].name}`;
     }
 
     function showMessage(msg, type) {
@@ -588,7 +544,7 @@
       setTimeout(() => div.remove(), 2000);
     }
 
-    // Load URL through proxy
+    // Load URL using selected proxy method
     async function loadUrl(url) {
       if (!url) return;
       
@@ -615,27 +571,12 @@
       }
       
       try {
-        const proxy = proxyConfigs[currentProxy];
-        const transporter = transporters[currentTransporter];
-        
+        const proxy = proxyMethods[currentProxy];
         let proxyUrl = proxy.url(targetUrl);
-        proxyUrl = transporter.process(proxyUrl);
         
-        // Special handling for CORS proxy that returns JSON
-        if (currentProxy === 'cors' && proxyUrl.includes('allorigins')) {
-          const response = await fetch(proxyUrl);
-          const data = await response.json();
-          if (data.contents) {
-            const blob = new Blob([data.contents], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            iframe.src = blobUrl;
-            iframe.onload = () => {
-              loading.classList.remove('active');
-              homepage.classList.add('hidden');
-              browserView.classList.add('active');
-            };
-            return;
-          }
+        // Special handling for Archive.org
+        if (currentProxy === 'archive') {
+          proxyUrl = `https://web.archive.org/web/${targetUrl}`;
         }
         
         iframe.src = proxyUrl;
@@ -643,7 +584,8 @@
         let timeout = setTimeout(() => {
           if (loading.classList.contains('active')) {
             loading.classList.remove('active');
-            showMessage('Proxy timeout, trying direct...', 'error');
+            showMessage('Trying alternative method...', 'error');
+            // Try direct as fallback
             iframe.src = targetUrl;
           }
         }, 15000);
@@ -658,7 +600,7 @@
         iframe.onerror = () => {
           clearTimeout(timeout);
           loading.classList.remove('active');
-          showMessage('Proxy failed, trying direct...', 'error');
+          showMessage('Trying direct connection...', 'error');
           iframe.src = targetUrl;
           iframe.onload = () => {
             homepage.classList.add('hidden');
@@ -675,7 +617,6 @@
       }
     }
     
-    // Navigation functions
     function goBack() {
       if (historyIndex > 0) {
         historyIndex--;
@@ -746,17 +687,14 @@
       });
     });
     
-    // Close modal when clicking outside
     settingsModal.addEventListener('click', (e) => {
       if (e.target === settingsModal) {
         settingsModal.classList.remove('active');
       }
     });
     
-    // Load settings on start
     loadSettings();
     
-    // Handle iframe navigation updates
     iframe.addEventListener('load', () => {
       loading.classList.remove('active');
       try {
@@ -764,9 +702,7 @@
         if (iframeUrl && iframeUrl !== 'about:blank' && !iframeUrl.startsWith('blob:')) {
           urlBar.value = iframeUrl;
         }
-      } catch (e) {
-        // Cross-origin, can't access URL
-      }
+      } catch (e) {}
     });
   </script>
 </body>
