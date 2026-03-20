@@ -6,68 +6,74 @@
   <title>Notes</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:system-ui,sans-serif; background:#000; color:#eee; height:100vh; overflow:hidden; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #000;
+      color: #eee;
+      height: 100vh;
+      overflow: hidden;
+    }
     #ui {
-      position:absolute; inset:0; z-index:10; background:rgba(0,0,0,0.96);
-      display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity .4s;
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.3s;
     }
-    #ui.hidden { opacity:0; pointer-events:none; }
-    #top { position:absolute; top:14px; right:18px; z-index:15; }
-    #cog {
-      width:28px; height:28px; cursor:pointer; transition:stroke .2s;
-      stroke:#888; stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    #ui.hidden { opacity: 0; pointer-events: none; }
+    form {
+      width: 90%;
+      max-width: 720px;
+      display: flex;
     }
-    #cog:hover { stroke:#aaa; }
-    form { width:90%; max-width:720px; display:flex; margin-bottom:1.2rem; }
     input {
-      flex:1; padding:1.2rem 1.5rem; font-size:1.35rem; background:#111; border:1px solid #444;
-      border-radius:999px 0 0 999px; color:#fff; outline:none;
+      flex: 1;
+      padding: 1.2rem 1.5rem;
+      font-size: 1.35rem;
+      background: #111;
+      border: 1px solid #444;
+      border-radius: 999px 0 0 999px;
+      color: #fff;
+      outline: none;
     }
-    input::placeholder { color:#777; }
-    input:focus { border-color:#0066ff; box-shadow:0 0 0 4px rgba(0,102,255,.2); }
+    input::placeholder { color: #777; }
+    input:focus { border-color: #0066ff; box-shadow: 0 0 0 4px rgba(0,102,255,0.2); }
     button {
-      padding:0 2.4rem; font-size:1.35rem; background:#0066ff; color:white; border:none;
-      border-radius:0 999px 999px 0; cursor:pointer;
+      padding: 0 2.4rem;
+      font-size: 1.35rem;
+      background: #0066ff;
+      color: white;
+      border: none;
+      border-radius: 0 999px 999px 0;
+      cursor: pointer;
     }
-    button:active { background:#0055dd; }
-    #settings-panel {
-      background:#111; border:1px solid #444; border-radius:12px; padding:1rem;
-      margin-top:1rem; width:90%; max-width:320px; text-align:left; display:none;
+    button:active { background: #0055dd; }
+    #status {
+      margin-top: 1.4rem;
+      color: #888;
+      font-size: 1rem;
+      text-align: center;
+      max-width: 90%;
     }
-    #settings-panel label { display:block; margin-bottom:.5rem; color:#ccc; font-size:1rem; }
-    #settings-panel select {
-      width:100%; padding:.6rem; background:#222; color:#eee; border:1px solid #555;
-      border-radius:8px; font-size:1rem;
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
     }
-    #status { margin-top:1.2rem; color:#888; font-size:1rem; text-align:center; max-width:90%; }
-    iframe { width:100%; height:100%; border:none; background:white; display:none; }
   </style>
 </head>
 <body>
-
-  <div id="top">
-    <svg id="cog" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-  </div>
 
   <div id="ui">
     <form id="frm">
       <input id="inp" type="text" placeholder="Search or enter URL" autocomplete="off" autofocus>
       <button type="submit">→</button>
     </form>
-
-    <div id="settings-panel">
-      <label>Search engine</label>
-      <select id="engine">
-        <option value="ddg-lite" selected>DuckDuckGo Lite</option>
-        <option value="startpage">Startpage</option>
-        <option value="bing">Bing</option>
-        <option value="google">Google</option>
-      </select>
-    </div>
-
     <div id="status"></div>
   </div>
 
@@ -79,28 +85,6 @@
     const frm = document.getElementById('frm');
     const inp = document.getElementById('inp');
     const status = document.getElementById('status');
-    const cog = document.getElementById('cog');
-    const settingsPanel = document.getElementById('settings-panel');
-    const engineSelect = document.getElementById('engine');
-
-    const engines = {
-      'ddg-lite': 'https://html.duckduckgo.com/html/?q=',
-      'startpage': 'https://www.startpage.com/sp/search?query=',
-      'bing': 'https://www.bing.com/search?q=',
-      'google': 'https://www.google.com/search?q='
-    };
-
-    let currentEngine = 'ddg-lite';
-    let loadCount = 0;
-    const LOAD_THRESHOLD = 4; // number of rapid loads to detect loop
-    const TIME_WINDOW = 5000; // ms window for rapid loads
-    let loadTimes = [];
-
-    engineSelect.addEventListener('change', () => currentEngine = engineSelect.value);
-
-    cog.addEventListener('click', () => {
-      settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
-    });
 
     function setStatus(txt = '', err = false) {
       status.textContent = txt;
@@ -109,12 +93,9 @@
 
     function go(url) {
       setStatus('Loading...');
-      loadCount = 0;
-      loadTimes = [];
       frme.src = url;
       frme.style.display = 'block';
       ui.classList.add('hidden');
-      settingsPanel.style.display = 'none';
       inp.blur();
     }
 
@@ -133,46 +114,49 @@
       if (!v) return;
 
       let url;
-      if (!v.includes(' ') && v.includes('.')) {
-        url = v.startsWith('http') ? v : 'https://' + v;
+      if (v.includes(' ') || !v.includes('.')) {
+        url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(v);
       } else {
-        url = engines[currentEngine] + encodeURIComponent(v);
+        url = v.startsWith('http') ? v : 'https://' + v;
       }
 
       go(url);
     });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') back(); });
-
-    document.addEventListener('click', e => {
-      if (frme.style.display === 'block' && !frme.contains(e.target) && !ui.contains(e.target)) back();
+    // Escape → back to input
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') back();
     });
 
-    frme.addEventListener('load', () => {
-      const now = Date.now();
-      loadTimes.push(now);
-      loadCount++;
-
-      // Clean old loads
-      loadTimes = loadTimes.filter(t => now - t < TIME_WINDOW);
-
-      if (loadTimes.length >= LOAD_THRESHOLD) {
-        setStatus('Refresh loop detected — site is trying to break out of frame', true);
-        setTimeout(back, 3000);
-        return;
+    // Click outside frame → back (mobile/touch friendly)
+    document.addEventListener('click', e => {
+      if (frme.style.display === 'block' && !frme.contains(e.target)) {
+        back();
       }
+    });
 
+    // Try to detect CSP / XFO block quickly
+    frme.addEventListener('load', () => {
       try {
         const d = frme.contentDocument || frme.contentWindow?.document;
         if (d && !d.body?.innerHTML?.trim()) {
-          setStatus('Site blocked or failed to load in frame', true);
-          setTimeout(back, 2000);
+          setStatus('Site blocks embedding (security rules)', true);
+          setTimeout(back, 2200);
         } else {
           setStatus('');
+          // Image proxy attempt (DDG) to help some content
+          try {
+            d.querySelectorAll('img').forEach(img => {
+              if (img.src && !img.src.includes('duckduckgo')) {
+                img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
+              }
+            });
+          } catch {}
         }
-      } catch {
-        setStatus('Blocked by site security (CSP / frame-ancestors)', true);
-        setTimeout(back, 2500);
+      } catch (err) {
+        // Most likely CSP block
+        setStatus('Blocked by site (frame-ancestors or similar)', true);
+        setTimeout(back, 2800);
       }
     });
   </script>
