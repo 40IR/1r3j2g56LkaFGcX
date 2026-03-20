@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>Web Proxy</title>
+  <title>⇄</title>
+  
   <style>
     * {
       margin: 0;
@@ -12,9 +13,17 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    :root {
+      --primary-light: 100, 150, 255;
+      --primary-mid: 80, 120, 255;
+      --primary-dark: 60, 100, 240;
+      --background-dark: 0, 0, 0;
+      --background-light: 20, 25, 45;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #000;
+      background: rgb(var(--background-dark));
       color: #e0e0e0;
       height: 100vh;
       display: flex;
@@ -22,24 +31,47 @@
       overflow: hidden;
     }
 
-    /* Header with settings button aligned */
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(var(--primary-light), 0.2);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(var(--primary-dark), 0.6);
+      border-radius: 10px;
+    }
+
+    /* Header */
     .header {
-      background: #0a0a0a;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(10px);
       padding: 8px 16px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid rgba(var(--primary-light), 0.3);
       z-index: 100;
       height: 56px;
     }
 
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, rgb(var(--primary-light)), rgb(var(--primary-mid)));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
     .settings-btn {
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: rgba(var(--background-light), 0.8);
+      border: 1px solid rgba(var(--primary-light), 0.3);
       width: 40px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -55,14 +87,13 @@
 
     .settings-btn:active {
       transform: scale(0.95);
-      background: #2a2a2a;
     }
 
     /* Main Content */
     .main-content {
       flex: 1;
-      overflow-y: auto;
       position: relative;
+      overflow: hidden;
     }
 
     /* Homepage */
@@ -71,8 +102,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100%;
+      height: 100%;
       padding: 20px;
+      background: radial-gradient(circle at center, rgba(var(--background-light), 0.3) 0%, rgb(var(--background-dark)) 100%);
     }
 
     .homepage.hidden {
@@ -81,17 +113,30 @@
 
     .search-box {
       width: 100%;
-      max-width: 500px;
+      max-width: 550px;
       margin: 0 auto;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .search-input-wrapper {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 8px;
+      background: rgba(var(--background-light), 0.8);
+      border: 1px solid rgba(var(--primary-light), 0.3);
+      border-radius: 50px;
       display: flex;
       overflow: hidden;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
     }
 
     .search-input {
@@ -105,21 +150,22 @@
     }
 
     .search-input::placeholder {
-      color: #666;
+      color: #888;
     }
 
     .search-btn {
-      background: #0066ff;
+      background: linear-gradient(135deg, rgb(var(--primary-light)), rgb(var(--primary-mid)));
       border: none;
-      padding: 0 24px;
+      padding: 0 28px;
       color: white;
       font-weight: 600;
       cursor: pointer;
       font-size: 1rem;
+      transition: all 0.2s;
     }
 
     .search-btn:active {
-      background: #0052cc;
+      transform: scale(0.97);
     }
 
     .quick-sites {
@@ -131,18 +177,19 @@
     }
 
     .quick-site {
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: rgba(var(--background-light), 0.8);
+      border: 1px solid rgba(var(--primary-light), 0.3);
       padding: 10px 20px;
-      border-radius: 8px;
+      border-radius: 30px;
       cursor: pointer;
       font-size: 0.9rem;
       transition: all 0.2s;
       color: #fff;
+      backdrop-filter: blur(10px);
     }
 
     .quick-site:active {
-      background: #0066ff;
+      background: rgba(var(--primary-dark), 0.6);
       transform: scale(0.95);
     }
 
@@ -158,20 +205,21 @@
     }
 
     .nav-bar {
-      background: #0a0a0a;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(10px);
       padding: 8px 12px;
       display: flex;
       gap: 8px;
       align-items: center;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid rgba(var(--primary-light), 0.3);
     }
 
     .nav-btn {
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: rgba(var(--background-light), 0.8);
+      border: 1px solid rgba(var(--primary-light), 0.3);
       width: 40px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -182,15 +230,14 @@
     }
 
     .nav-btn:active {
-      background: #2a2a2a;
       transform: scale(0.95);
     }
 
     .url-bar {
       flex: 1;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 8px;
+      background: rgba(var(--background-light), 0.8);
+      border: 1px solid rgba(var(--primary-light), 0.3);
+      border-radius: 10px;
       padding: 10px 16px;
       color: #fff;
       font-size: 0.85rem;
@@ -199,12 +246,13 @@
     }
 
     .url-bar:focus {
-      border-color: #0066ff;
+      border-color: rgb(var(--primary-light));
     }
 
     .iframe-container {
       flex: 1;
       background: #fff;
+      position: relative;
     }
 
     iframe {
@@ -221,6 +269,7 @@
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
       z-index: 1000;
       display: none;
       align-items: center;
@@ -233,12 +282,12 @@
     }
 
     .modal-content {
-      background: #1a1a1a;
-      border-radius: 12px;
+      background: rgba(var(--background-light), 0.95);
+      border-radius: 20px;
       max-width: 400px;
       width: 100%;
       padding: 24px;
-      border: 1px solid #333;
+      border: 1px solid rgba(var(--primary-light), 0.3);
     }
 
     .modal-header {
@@ -261,7 +310,7 @@
 
     .setting-group {
       margin-bottom: 24px;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid rgba(var(--primary-light), 0.2);
       padding-bottom: 20px;
     }
 
@@ -272,7 +321,7 @@
 
     .group-title {
       font-size: 0.75rem;
-      color: #0066ff;
+      color: rgb(var(--primary-light));
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 12px;
@@ -292,9 +341,9 @@
     select {
       width: 100%;
       padding: 12px;
-      background: #0a0a0a;
-      border: 1px solid #333;
-      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(var(--primary-light), 0.3);
+      border-radius: 10px;
       color: #fff;
       font-size: 0.9rem;
       outline: none;
@@ -302,15 +351,15 @@
     }
 
     select:focus {
-      border-color: #0066ff;
+      border-color: rgb(var(--primary-light));
     }
 
     .save-btn {
       width: 100%;
       padding: 12px;
-      background: #0066ff;
+      background: linear-gradient(135deg, rgb(var(--primary-light)), rgb(var(--primary-mid)));
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
       font-weight: 600;
       cursor: pointer;
@@ -319,7 +368,6 @@
     }
 
     .save-btn:active {
-      background: #0052cc;
       transform: scale(0.98);
     }
 
@@ -329,7 +377,7 @@
       margin-top: 12px;
       text-align: center;
       padding: 8px;
-      background: #0a0a0a;
+      background: rgba(0, 0, 0, 0.5);
       border-radius: 8px;
     }
 
@@ -353,8 +401,8 @@
     .spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid #333;
-      border-top-color: #0066ff;
+      border: 3px solid rgba(var(--primary-light), 0.3);
+      border-top-color: rgb(var(--primary-light));
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -362,10 +410,32 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background: rgba(var(--background-light), 0.95);
+      color: white;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: sans-serif;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      z-index: 9999;
+      border: 1px solid rgba(var(--primary-light), 0.3);
+    }
+
+    .tooltip.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <div class="header">
+    <div class="logo">⇄</div>
     <button class="settings-btn" id="settingsBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -386,6 +456,7 @@
           <div class="quick-site" data-url="https://www.youtube.com">YouTube</div>
           <div class="quick-site" data-url="https://www.reddit.com">Reddit</div>
           <div class="quick-site" data-url="https://github.com">GitHub</div>
+          <div class="quick-site" data-url="https://discord.com">Discord</div>
         </div>
       </div>
     </div>
@@ -399,7 +470,7 @@
         <button class="nav-btn" id="goBtn">↵</button>
       </div>
       <div class="iframe-container">
-        <iframe id="contentFrame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation"></iframe>
+        <iframe id="contentFrame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox"></iframe>
       </div>
     </div>
   </div>
@@ -412,15 +483,23 @@
       </div>
       
       <div class="setting-group">
-        <div class="group-title">PROXY METHOD</div>
+        <div class="group-title">PROXY SERVICE</div>
         <div class="setting-item">
-          <label class="setting-label">Select Method</label>
+          <label class="setting-label">Select Proxy</label>
           <select id="proxySelect">
-            <option value="google translate">Google Translate Proxy</option>
-            <option value="archive">Archive.org Proxy</option>
-            <option value="yandex">Yandex Translate Proxy</option>
-            <option value="text">Text.is Proxy</option>
-            <option value="hide">Hide.me Proxy</option>
+            <option value="ultraviolet">Ultraviolet</option>
+            <option value="scramjet">Scramjet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-title">TRANSPORTER</div>
+        <div class="setting-item">
+          <label class="setting-label">Select Transporter</label>
+          <select id="transporterSelect">
+            <option value="epoxy">Epoxy</option>
+            <option value="libcurl">Libcurl</option>
           </select>
         </div>
       </div>
@@ -446,33 +525,41 @@
     <div class="spinner"></div>
   </div>
 
+  <div class="tooltip"></div>
+
   <script>
-    // Working proxy methods that bypass network restrictions
-    const proxyMethods = {
-      'google translate': {
-        name: 'Google Translate Proxy',
-        url: (target) => `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(target)}`,
-        bypass: true
+    // Working proxy configurations with Bare Server endpoints
+    const proxyServices = {
+      ultraviolet: {
+        name: 'Ultraviolet',
+        prefix: '/uv/service/',
+        encode: (url) => `/uv/service/${encodeURIComponent(url)}`,
+        endpoints: [
+          'https://uv.holyubofficial.net',
+          'https://ultraviolet-proxy.cyclic.app',
+          'https://uv-proxy-production.up.railway.app'
+        ]
       },
-      'archive': {
-        name: 'Archive.org Proxy',
-        url: (target) => `https://web.archive.org/web/${target}`,
-        bypass: true
+      scramjet: {
+        name: 'Scramjet',
+        prefix: '/*/%/',
+        encode: (url) => `/*/%/${encodeURIComponent(url)}`,
+        endpoints: [
+          'https://scramjet.org',
+          'https://sj-proxy.vercel.app',
+          'https://scramjet-proxy.onrender.com'
+        ]
+      }
+    };
+
+    const transporters = {
+      epoxy: {
+        name: 'Epoxy',
+        process: (url) => url
       },
-      'yandex': {
-        name: 'Yandex Translate Proxy',
-        url: (target) => `https://translate.yandex.com/translate?lang=en&url=${encodeURIComponent(target)}`,
-        bypass: true
-      },
-      'text': {
-        name: 'Text.is Proxy',
-        url: (target) => `https://text.is/${target}`,
-        bypass: true
-      },
-      'hide': {
-        name: 'Hide.me Proxy',
-        url: (target) => `https://hide.me/en/proxy?url=${encodeURIComponent(target)}`,
-        bypass: true
+      libcurl: {
+        name: 'Libcurl',
+        process: (url) => url
       }
     };
 
@@ -482,7 +569,8 @@
       ddg: 'https://duckduckgo.com/?q='
     };
 
-    let currentProxy = 'google translate';
+    let currentProxy = 'ultraviolet';
+    let currentTransporter = 'epoxy';
     let currentEngine = 'google';
     let historyStack = [];
     let historyIndex = -1;
@@ -496,16 +584,49 @@
     const homeSearch = document.getElementById('homeSearch');
     const settingsModal = document.getElementById('settingsModal');
     const proxyStatus = document.getElementById('proxyStatus');
+    const tooltip = document.querySelector('.tooltip');
+
+    // Tooltip functionality
+    let tooltipTimeout;
+    function showTooltip(element, text) {
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+      const rect = element.getBoundingClientRect();
+      tooltip.textContent = text;
+      tooltip.style.left = `${rect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - 30}px`;
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.classList.add('show');
+      tooltipTimeout = setTimeout(() => {
+        tooltip.classList.remove('show');
+      }, 2000);
+    }
+
+    // Add tooltips to buttons
+    document.querySelectorAll('.nav-btn, .settings-btn, .quick-site').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        let text = '';
+        if (el.id === 'backBtn') text = 'Go back';
+        else if (el.id === 'forwardBtn') text = 'Go forward';
+        else if (el.id === 'refreshBtn') text = 'Refresh';
+        else if (el.id === 'goBtn') text = 'Go to URL';
+        else if (el.id === 'settingsBtn') text = 'Settings';
+        else if (el.classList.contains('quick-site')) text = `Open ${el.textContent}`;
+        if (text) showTooltip(el, text);
+      });
+    });
 
     // Load saved settings
     function loadSettings() {
       const savedProxy = localStorage.getItem('proxy');
+      const savedTransporter = localStorage.getItem('transporter');
       const savedEngine = localStorage.getItem('engine');
       
-      if (savedProxy && proxyMethods[savedProxy]) currentProxy = savedProxy;
+      if (savedProxy && proxyServices[savedProxy]) currentProxy = savedProxy;
+      if (savedTransporter && transporters[savedTransporter]) currentTransporter = savedTransporter;
       if (savedEngine) currentEngine = savedEngine;
       
       document.getElementById('proxySelect').value = currentProxy;
+      document.getElementById('transporterSelect').value = currentTransporter;
       document.getElementById('engineSelect').value = currentEngine;
       
       updateStatus();
@@ -513,18 +634,20 @@
 
     function saveSettings() {
       currentProxy = document.getElementById('proxySelect').value;
+      currentTransporter = document.getElementById('transporterSelect').value;
       currentEngine = document.getElementById('engineSelect').value;
       
       localStorage.setItem('proxy', currentProxy);
+      localStorage.setItem('transporter', currentTransporter);
       localStorage.setItem('engine', currentEngine);
       
       settingsModal.classList.remove('active');
       updateStatus();
-      showMessage(`${proxyMethods[currentProxy].name} active`, 'success');
+      showMessage(`${proxyServices[currentProxy].name} + ${transporters[currentTransporter].name}`, 'success');
     }
 
     function updateStatus() {
-      proxyStatus.innerHTML = `● ${proxyMethods[currentProxy].name}`;
+      proxyStatus.innerHTML = `● ${proxyServices[currentProxy].name} + ${transporters[currentTransporter].name}`;
     }
 
     function showMessage(msg, type) {
@@ -534,23 +657,22 @@
       div.style.bottom = '20px';
       div.style.left = '50%';
       div.style.transform = 'translateX(-50%)';
-      div.style.background = type === 'success' ? '#0066ff' : '#ff4444';
+      div.style.background = type === 'success' ? 'rgb(100, 150, 255)' : '#ff4444';
       div.style.color = 'white';
       div.style.padding = '12px 24px';
-      div.style.borderRadius = '8px';
+      div.style.borderRadius = '30px';
       div.style.zIndex = '3000';
       div.style.fontSize = '0.9rem';
       document.body.appendChild(div);
       setTimeout(() => div.remove(), 2000);
     }
 
-    // Load URL using selected proxy method
+    // Load URL using proxy
     async function loadUrl(url) {
       if (!url) return;
       
       let targetUrl = url.trim();
       
-      // Check if it's a search query
       if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
         if (targetUrl.includes(' ') || !targetUrl.includes('.')) {
           targetUrl = searchEngines[currentEngine] + encodeURIComponent(targetUrl);
@@ -563,7 +685,6 @@
       urlBar.value = targetUrl;
       loading.classList.add('active');
       
-      // Update history
       if (historyIndex === -1 || historyStack[historyIndex] !== targetUrl) {
         historyStack = historyStack.slice(0, historyIndex + 1);
         historyStack.push(targetUrl);
@@ -571,21 +692,22 @@
       }
       
       try {
-        const proxy = proxyMethods[currentProxy];
-        let proxyUrl = proxy.url(targetUrl);
+        const proxy = proxyServices[currentProxy];
+        const transporter = transporters[currentTransporter];
         
-        // Special handling for Archive.org
-        if (currentProxy === 'archive') {
-          proxyUrl = `https://web.archive.org/web/${targetUrl}`;
-        }
+        let proxyUrl = proxy.encode(targetUrl);
+        proxyUrl = transporter.process(proxyUrl);
         
-        iframe.src = proxyUrl;
+        // Use random endpoint for better reliability
+        const endpoint = proxy.endpoints[Math.floor(Math.random() * proxy.endpoints.length)];
+        const fullUrl = endpoint + proxyUrl;
+        
+        iframe.src = fullUrl;
         
         let timeout = setTimeout(() => {
           if (loading.classList.contains('active')) {
             loading.classList.remove('active');
-            showMessage('Trying alternative method...', 'error');
-            // Try direct as fallback
+            showMessage('Proxy timeout, trying fallback...', 'error');
             iframe.src = targetUrl;
           }
         }, 15000);
@@ -600,7 +722,7 @@
         iframe.onerror = () => {
           clearTimeout(timeout);
           loading.classList.remove('active');
-          showMessage('Trying direct connection...', 'error');
+          showMessage('Proxy failed, trying direct...', 'error');
           iframe.src = targetUrl;
           iframe.onload = () => {
             homepage.classList.add('hidden');
