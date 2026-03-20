@@ -61,10 +61,10 @@
     <div id="settings-panel">
       <label>Search engine</label>
       <select id="engine">
-        <option value="ddg-lite">DuckDuckGo Lite</option>
-        <option value="google">Google</option>
-        <option value="bing">Bing</option>
+        <option value="ddg-lite" selected>DuckDuckGo Lite</option>
         <option value="startpage">Startpage</option>
+        <option value="bing">Bing</option>
+        <option value="google">Google</option>
       </select>
     </div>
 
@@ -85,14 +85,16 @@
 
     const engines = {
       'ddg-lite': 'https://html.duckduckgo.com/html/?q=',
-      'google': 'https://www.google.com/search?q=',
+      'startpage': 'https://www.startpage.com/sp/search?query=',
       'bing': 'https://www.bing.com/search?q=',
-      'startpage': 'https://www.startpage.com/sp/search?query='
+      'google': 'https://www.google.com/search?q='
     };
 
     let currentEngine = 'ddg-lite';
     let loadCount = 0;
-    let lastLoadTime = 0;
+    const LOAD_THRESHOLD = 4; // number of rapid loads to detect loop
+    const TIME_WINDOW = 5000; // ms window for rapid loads
+    let loadTimes = [];
 
     engineSelect.addEventListener('change', () => currentEngine = engineSelect.value);
 
@@ -108,7 +110,7 @@
     function go(url) {
       setStatus('Loading...');
       loadCount = 0;
-      lastLoadTime = Date.now();
+      loadTimes = [];
       frme.src = url;
       frme.style.display = 'block';
       ui.classList.add('hidden');
@@ -148,25 +150,28 @@
 
     frme.addEventListener('load', () => {
       const now = Date.now();
+      loadTimes.push(now);
       loadCount++;
 
-      // Detect rapid reload loop (e.g. breakout redirect)
-      if (loadCount > 3 && (now - lastLoadTime < 3000)) {
-        setStatus('Site keeps refreshing (anti-frame protection)', true);
-        setTimeout(back, 2500);
+      // Clean old loads
+      loadTimes = loadTimes.filter(t => now - t < TIME_WINDOW);
+
+      if (loadTimes.length >= LOAD_THRESHOLD) {
+        setStatus('Refresh loop detected — site is trying to break out of frame', true);
+        setTimeout(back, 3000);
         return;
       }
 
       try {
         const d = frme.contentDocument || frme.contentWindow?.document;
         if (d && !d.body?.innerHTML?.trim()) {
-          setStatus('Site blocked or empty in frame', true);
+          setStatus('Site blocked or failed to load in frame', true);
           setTimeout(back, 2000);
         } else {
           setStatus('');
         }
       } catch {
-        setStatus('Blocked by site (CSP / frame rules)', true);
+        setStatus('Blocked by site security (CSP / frame-ancestors)', true);
         setTimeout(back, 2500);
       }
     });
