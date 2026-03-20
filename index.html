@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>⇄</title>
+  <title>Web Proxy</title>
   
   <style>
     * {
@@ -44,26 +44,17 @@
       border-radius: 10px;
     }
 
-    /* Header */
+    /* Header - Clean with only settings button */
     .header {
       background: rgba(10, 10, 15, 0.95);
       backdrop-filter: blur(10px);
       padding: 8px 16px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       border-bottom: 1px solid rgba(var(--primary-light), 0.3);
       z-index: 100;
       height: 56px;
-    }
-
-    .logo {
-      font-size: 1.3rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, rgb(var(--primary-light)), rgb(var(--primary-mid)));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
     }
 
     .settings-btn {
@@ -410,32 +401,10 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    /* Tooltip */
-    .tooltip {
-      position: absolute;
-      background: rgba(var(--background-light), 0.95);
-      color: white;
-      border-radius: 8px;
-      padding: 5px 10px;
-      font-size: 12px;
-      font-family: sans-serif;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s ease-in-out;
-      z-index: 9999;
-      border: 1px solid rgba(var(--primary-light), 0.3);
-    }
-
-    .tooltip.show {
-      opacity: 1;
-    }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo">⇄</div>
     <button class="settings-btn" id="settingsBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -456,7 +425,6 @@
           <div class="quick-site" data-url="https://www.youtube.com">YouTube</div>
           <div class="quick-site" data-url="https://www.reddit.com">Reddit</div>
           <div class="quick-site" data-url="https://github.com">GitHub</div>
-          <div class="quick-site" data-url="https://discord.com">Discord</div>
         </div>
       </div>
     </div>
@@ -525,42 +493,38 @@
     <div class="spinner"></div>
   </div>
 
-  <div class="tooltip"></div>
-
   <script>
-    // Working proxy configurations with Bare Server endpoints
+    // Working proxy configurations
     const proxyServices = {
       ultraviolet: {
         name: 'Ultraviolet',
-        prefix: '/uv/service/',
-        encode: (url) => `/uv/service/${encodeURIComponent(url)}`,
-        endpoints: [
-          'https://uv.holyubofficial.net',
-          'https://ultraviolet-proxy.cyclic.app',
-          'https://uv-proxy-production.up.railway.app'
-        ]
+        encode: (url) => {
+          // Use multiple working Ultraviolet endpoints
+          const endpoints = [
+            `https://uv.holyubofficial.net/uv/service/${encodeURIComponent(url)}`,
+            `https://ultraviolet-proxy.cyclic.app/uv/service/${encodeURIComponent(url)}`,
+            `https://uv-proxy-production.up.railway.app/uv/service/${encodeURIComponent(url)}`
+          ];
+          return endpoints[Math.floor(Math.random() * endpoints.length)];
+        }
       },
       scramjet: {
         name: 'Scramjet',
-        prefix: '/*/%/',
-        encode: (url) => `/*/%/${encodeURIComponent(url)}`,
-        endpoints: [
-          'https://scramjet.org',
-          'https://sj-proxy.vercel.app',
-          'https://scramjet-proxy.onrender.com'
-        ]
+        encode: (url) => {
+          // Use multiple working Scramjet endpoints
+          const endpoints = [
+            `https://scramjet.org/*/%/${encodeURIComponent(url)}`,
+            `https://sj-proxy.vercel.app/*/%/${encodeURIComponent(url)}`,
+            `https://scramjet-proxy.onrender.com/*/%/${encodeURIComponent(url)}`
+          ];
+          return endpoints[Math.floor(Math.random() * endpoints.length)];
+        }
       }
     };
 
     const transporters = {
-      epoxy: {
-        name: 'Epoxy',
-        process: (url) => url
-      },
-      libcurl: {
-        name: 'Libcurl',
-        process: (url) => url
-      }
+      epoxy: { name: 'Epoxy' },
+      libcurl: { name: 'Libcurl' }
     };
 
     const searchEngines = {
@@ -584,36 +548,6 @@
     const homeSearch = document.getElementById('homeSearch');
     const settingsModal = document.getElementById('settingsModal');
     const proxyStatus = document.getElementById('proxyStatus');
-    const tooltip = document.querySelector('.tooltip');
-
-    // Tooltip functionality
-    let tooltipTimeout;
-    function showTooltip(element, text) {
-      if (tooltipTimeout) clearTimeout(tooltipTimeout);
-      const rect = element.getBoundingClientRect();
-      tooltip.textContent = text;
-      tooltip.style.left = `${rect.left + rect.width / 2}px`;
-      tooltip.style.top = `${rect.top - 30}px`;
-      tooltip.style.transform = 'translateX(-50%)';
-      tooltip.classList.add('show');
-      tooltipTimeout = setTimeout(() => {
-        tooltip.classList.remove('show');
-      }, 2000);
-    }
-
-    // Add tooltips to buttons
-    document.querySelectorAll('.nav-btn, .settings-btn, .quick-site').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        let text = '';
-        if (el.id === 'backBtn') text = 'Go back';
-        else if (el.id === 'forwardBtn') text = 'Go forward';
-        else if (el.id === 'refreshBtn') text = 'Refresh';
-        else if (el.id === 'goBtn') text = 'Go to URL';
-        else if (el.id === 'settingsBtn') text = 'Settings';
-        else if (el.classList.contains('quick-site')) text = `Open ${el.textContent}`;
-        if (text) showTooltip(el, text);
-      });
-    });
 
     // Load saved settings
     function loadSettings() {
@@ -693,21 +627,14 @@
       
       try {
         const proxy = proxyServices[currentProxy];
-        const transporter = transporters[currentTransporter];
+        const proxyUrl = proxy.encode(targetUrl);
         
-        let proxyUrl = proxy.encode(targetUrl);
-        proxyUrl = transporter.process(proxyUrl);
-        
-        // Use random endpoint for better reliability
-        const endpoint = proxy.endpoints[Math.floor(Math.random() * proxy.endpoints.length)];
-        const fullUrl = endpoint + proxyUrl;
-        
-        iframe.src = fullUrl;
+        iframe.src = proxyUrl;
         
         let timeout = setTimeout(() => {
           if (loading.classList.contains('active')) {
             loading.classList.remove('active');
-            showMessage('Proxy timeout, trying fallback...', 'error');
+            showMessage('Trying fallback...', 'error');
             iframe.src = targetUrl;
           }
         }, 15000);
@@ -722,7 +649,7 @@
         iframe.onerror = () => {
           clearTimeout(timeout);
           loading.classList.remove('active');
-          showMessage('Proxy failed, trying direct...', 'error');
+          showMessage('Trying direct connection...', 'error');
           iframe.src = targetUrl;
           iframe.onload = () => {
             homepage.classList.add('hidden');
