@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Proxy</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #000;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      padding: 0 16px;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 8vw, 4.2rem);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1.8rem;
+      letter-spacing: -1px;
+    }
+    form {
+      display: flex;
+      width: 100%;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 1rem 1.3rem;
+      font-size: clamp(1rem, 4vw, 1.3rem);
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 999px 0 0 999px;
+      color: white;
+      outline: none;
+    }
+    input::placeholder { color: #777; }
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+    button {
+      padding: 0 1.8rem;
+      font-size: clamp(1rem, 4vw, 1.3rem);
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0 999px 999px 0;
+      cursor: pointer;
+    }
+    button:active { background: #2563eb; }
+    #status {
+      margin-top: 1.2rem;
+      color: #888;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Proxy</h1>
+    <form id="form">
+      <input type="text" id="input" placeholder="Search or enter URL" autocomplete="off" autofocus/>
+      <button type="submit">→</button>
+    </form>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let val = input.value.trim();
+      if (!val) return;
+
+      status.textContent = 'Loading...';
+
+      let url;
+      if (!/^https?:\/\//i.test(val)) {
+        if (val.includes(' ') || !val.includes('.')) {
+          url = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
+        } else {
+          url = 'https://' + val;
+        }
+      } else {
+        url = val;
+      }
+
+      // Try iframe first (works on non-blocking sites)
+      const frame = document.createElement('iframe');
+      frame.style.position = 'fixed';
+      frame.style.inset = '0';
+      frame.style.width = '100%';
+      frame.style.height = '100%';
+      frame.style.border = 'none';
+      frame.style.zIndex = '9999';
+      frame.style.background = 'white';
+      frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation';
+
+      frame.src = url;
+      frame.onload = () => {
+        status.textContent = '';
+        document.body.appendChild(frame);
+      };
+
+      frame.onerror = () => {
+        // Most common failure: X-Frame-Options / CSP → fallback to new tab
+        window.open(url, '_blank');
+        status.textContent = 'Site blocks embedding — opened in new tab';
+        setTimeout(() => { status.textContent = ''; }, 4000);
+      };
+
+      // Add to DOM — onerror will fire quickly if blocked
+      document.body.appendChild(frame);
+
+      // Optional: images via DDG proxy (only if iframe loads)
+      frame.addEventListener('load', () => {
+        try {
+          const doc = frame.contentDocument || frame.contentWindow?.document;
+          if (doc) {
+            doc.querySelectorAll('img').forEach(img => {
+              if (img.src && !img.src.includes('duckduckgo')) {
+                img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
+              }
+            });
+          }
+        } catch {}
+      });
+    });
+
+    // Tap anywhere outside input to refocus (mobile)
+    document.addEventListener('click', e => {
+      if (!form.contains(e.target)) input.focus();
+    });
+  </script>
+</body>
+</html>
