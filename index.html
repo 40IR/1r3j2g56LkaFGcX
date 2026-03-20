@@ -7,9 +7,9 @@
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       background: #000;
-      color: #ddd;
+      color: #eee;
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -17,23 +17,23 @@
       align-items: center;
       overflow: hidden;
     }
-    .main { width: 100%; max-width: 680px; padding: 0 16px; }
+    .main { width: 100%; max-width: 680px; padding: 0 20px; text-align: center; }
     form { display: flex; width: 100%; }
     input {
       flex: 1;
-      padding: 1rem 1.3rem;
-      font-size: 1.25rem;
+      padding: 1.1rem 1.4rem;
+      font-size: 1.3rem;
       background: #111;
       border: 1px solid #444;
       border-radius: 999px 0 0 999px;
-      color: #eee;
+      color: #fff;
       outline: none;
     }
     input::placeholder { color: #888; }
-    input:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0,102,255,0.15); }
+    input:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0,102,255,0.2); }
     button {
-      padding: 0 1.8rem;
-      font-size: 1.25rem;
+      padding: 0 2rem;
+      font-size: 1.3rem;
       background: #0066ff;
       color: white;
       border: none;
@@ -42,12 +42,11 @@
     }
     button:active { background: #0055dd; }
     #msg {
-      margin-top: 1.2rem;
-      color: #777;
-      font-size: 0.95rem;
+      margin-top: 1.5rem;
+      color: #888;
+      font-size: 1rem;
       opacity: 0;
       transition: opacity 0.4s;
-      text-align: center;
     }
     #msg.show { opacity: 1; }
   </style>
@@ -67,123 +66,10 @@
     const input = document.getElementById('input');
     const msg = document.getElementById('msg');
 
-    let currentFrame = null;
-
-    // Expanded 2026 CORS proxies (more resilient/less blocked ones)
-    const corsProxies = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
-      'https://thingproxy.freeboard.io/fetch/',
-      'https://proxy.cors.sh/',
-      'https://cors-anywhere.herokuapp.com/'  // still up in some forks
-    ];
-
-    function showMsg(text, dur = 4000) {
+    function showMsg(text, dur = 5000) {
       msg.textContent = text;
       msg.classList.add('show');
       if (dur) setTimeout(() => msg.classList.remove('show'), dur);
-    }
-
-    function cleanup() {
-      if (currentFrame) {
-        currentFrame.remove();
-        currentFrame = null;
-      }
-      document.body.style.overflow = '';
-    }
-
-    async function fetchWithCors(target) {
-      for (const p of corsProxies) {
-        try {
-          const res = await fetch(p + encodeURIComponent(target), { mode: 'cors' });
-          if (res.ok) return await res.text();
-        } catch {}
-      }
-      return null;
-    }
-
-    function openNewTab(url) {
-      const w = window.open(url, '_blank');
-      if (w) showMsg('Opened in new tab (best compatibility)');
-      else showMsg('Popup blocked — allow popups or long-press to open');
-    }
-
-    async function trySrcdoc(targetUrl) {
-      cleanup();
-      showMsg('Trying content fetch...');
-
-      const html = await fetchWithCors(targetUrl);
-      if (!html) {
-        openNewTab(targetUrl);
-        return;
-      }
-
-      // Basic relative link fix
-      const base = new URL(targetUrl).origin;
-      const rewritten = html
-        .replace(/href=["']\/([^"']*)["']/g, `href="${base}/$1"`)
-        .replace(/src=["']\/([^"']*)["']/g, `src="${base}/$1"`);
-
-      const frame = document.createElement('iframe');
-      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999;background:#fff;';
-      frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation';
-      frame.srcdoc = rewritten;
-
-      frame.onload = () => {
-        currentFrame = frame;
-        document.body.appendChild(frame);
-        document.body.style.overflow = 'hidden';
-        showMsg('Content loaded (limited interactivity)', 3000);
-      };
-
-      frame.onerror = () => {
-        frame.remove();
-        openNewTab(targetUrl);
-      };
-
-      document.body.appendChild(frame);
-    }
-
-    function tryIframe(url) {
-      cleanup();
-
-      const frame = document.createElement('iframe');
-      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999;background:#fff;';
-      frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation';
-      frame.src = url;
-
-      let timeout = setTimeout(() => {
-        if (!frame.contentDocument?.body?.innerHTML?.trim() || frame.contentDocument?.title === '') {
-          frame.remove();
-          trySrcdoc(url);
-        }
-      }, 2000);
-
-      frame.onload = () => {
-        clearTimeout(timeout);
-        try {
-          const doc = frame.contentDocument || frame.contentWindow?.document;
-          if (doc) {
-            // Image proxy via DDG to reduce tracking/CORS noise
-            doc.querySelectorAll('img').forEach(img => {
-              if (img.src && !img.src.includes('duckduckgo.com')) {
-                img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
-              }
-            });
-          }
-        } catch {}
-        currentFrame = frame;
-        document.body.appendChild(frame);
-        document.body.style.overflow = 'hidden';
-      };
-
-      frame.onerror = () => {
-        clearTimeout(timeout);
-        frame.remove();
-        trySrcdoc(url);
-      };
-
-      document.body.appendChild(frame);
     }
 
     form.addEventListener('submit', e => {
@@ -195,36 +81,27 @@
       const isSearch = val.includes(' ') && !val.match(/\.[a-z]{2,}$/i) && !val.includes('://');
 
       if (isSearch) {
+        // Lite DDG for better chance on restricted networks
         url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(val);
       } else {
         url = /^https?:\/\//i.test(val) ? val : 'https://' + val;
       }
 
-      // Direct iframe for quizlet.one (works well)
-      if (url.includes('quizlet.one')) {
-        tryIframe(url);
+      // Prefer new tab on iOS (more reliable than location.href in some filters)
+      const win = window.open(url, '_blank');
+      if (win) {
+        showMsg('Opened in new tab');
       } else {
-        // General flow: iframe → srcdoc → new tab
-        tryIframe(url);
+        // Fallback: same-tab redirect if popup blocked
+        showMsg('Popup blocked — redirecting...', 2000);
+        setTimeout(() => { location.href = url; }, 1500);
       }
 
       input.blur();
     });
 
-    // Exit iframe on Esc or click outside
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && currentFrame) {
-        cleanup();
-        input.focus();
-      }
-    });
-
-    document.addEventListener('click', e => {
-      if (currentFrame && !e.target.closest('iframe')) {
-        cleanup();
-        input.focus();
-      }
-    });
+    // Optional: clear msg on input
+    input.addEventListener('input', () => msg.classList.remove('show'));
   </script>
 </body>
 </html>
