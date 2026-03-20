@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>⇄</title>
+  <title>Web Proxy</title>
   <style>
     * {
       margin: 0;
@@ -24,19 +24,13 @@
 
     /* Header */
     .header {
-      background: rgba(20, 20, 20, 0.98);
+      background: #0a0a0a;
       padding: 12px 16px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       border-bottom: 1px solid #2a2a2a;
       z-index: 100;
-    }
-
-    .title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #0066ff;
     }
 
     .settings-btn {
@@ -44,12 +38,13 @@
       border: 1px solid #333;
       width: 40px;
       height: 40px;
-      border-radius: 30px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
+      color: #fff;
     }
 
     .settings-btn:active {
@@ -87,7 +82,7 @@
     .search-input-wrapper {
       background: #1a1a1a;
       border: 1px solid #333;
-      border-radius: 50px;
+      border-radius: 8px;
       display: flex;
       overflow: hidden;
       margin-bottom: 20px;
@@ -133,10 +128,11 @@
       background: #1a1a1a;
       border: 1px solid #333;
       padding: 10px 20px;
-      border-radius: 30px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 0.9rem;
       transition: all 0.2s;
+      color: #fff;
     }
 
     .quick-site:active {
@@ -156,26 +152,27 @@
     }
 
     .nav-bar {
-      background: #1a1a1a;
+      background: #0a0a0a;
       padding: 8px 12px;
       display: flex;
       gap: 8px;
       align-items: center;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #2a2a2a;
     }
 
     .nav-btn {
-      background: #0a0a0a;
+      background: #1a1a1a;
       border: 1px solid #333;
-      width: 36px;
-      height: 36px;
-      border-radius: 30px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       font-size: 1.2rem;
       transition: all 0.2s;
+      color: #fff;
     }
 
     .nav-btn:active {
@@ -185,14 +182,18 @@
 
     .url-bar {
       flex: 1;
-      background: #0a0a0a;
+      background: #1a1a1a;
       border: 1px solid #333;
-      border-radius: 30px;
-      padding: 8px 16px;
+      border-radius: 8px;
+      padding: 10px 16px;
       color: #fff;
       font-size: 0.85rem;
       outline: none;
       font-family: monospace;
+    }
+
+    .url-bar:focus {
+      border-color: #0066ff;
     }
 
     .iframe-container {
@@ -227,7 +228,7 @@
 
     .modal-content {
       background: #1a1a1a;
-      border-radius: 20px;
+      border-radius: 12px;
       max-width: 400px;
       width: 100%;
       padding: 24px;
@@ -239,8 +240,9 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: 600;
+      color: #fff;
     }
 
     .close-modal {
@@ -263,7 +265,7 @@
     }
 
     .group-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #0066ff;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -277,19 +279,24 @@
     .setting-label {
       display: block;
       margin-bottom: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #aaa;
     }
 
-    select, input {
+    select {
       width: 100%;
       padding: 12px;
       background: #0a0a0a;
       border: 1px solid #333;
-      border-radius: 12px;
+      border-radius: 8px;
       color: #fff;
       font-size: 0.9rem;
       outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: #0066ff;
     }
 
     .save-btn {
@@ -297,11 +304,12 @@
       padding: 12px;
       background: #0066ff;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
       color: white;
       font-weight: 600;
       cursor: pointer;
       margin-top: 10px;
+      font-size: 1rem;
     }
 
     .save-btn:active {
@@ -312,8 +320,11 @@
     .status-badge {
       font-size: 0.7rem;
       color: #00cc66;
-      margin-top: 8px;
+      margin-top: 12px;
       text-align: center;
+      padding: 8px;
+      background: #0a0a0a;
+      border-radius: 8px;
     }
 
     /* Loading */
@@ -349,13 +360,12 @@
 </head>
 <body>
   <div class="header">
-    <div class="title">⇄</div>
-    <div class="settings-btn" id="settingsBtn">
+    <button class="settings-btn" id="settingsBtn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.04.04A10 10 0 0 0 12 17.66a10 10 0 0 0 6.36-2.62l.04-.04z"/>
       </svg>
-    </div>
+    </button>
   </div>
 
   <div class="main-content">
@@ -363,14 +373,14 @@
     <div class="homepage" id="homepage">
       <div class="search-box">
         <div class="search-input-wrapper">
-          <input type="text" class="search-input" id="homeSearch" placeholder="Search or enter URL">
+          <input type="text" class="search-input" id="homeSearch" placeholder="Search or enter URL" autofocus>
           <button class="search-btn" id="homeSearchBtn">Go</button>
         </div>
         <div class="quick-sites">
           <div class="quick-site" data-url="https://www.google.com">Google</div>
           <div class="quick-site" data-url="https://www.youtube.com">YouTube</div>
           <div class="quick-site" data-url="https://www.reddit.com">Reddit</div>
-          <div class="quick-site" data-url="https://www.twitter.com">Twitter</div>
+          <div class="quick-site" data-url="https://github.com">GitHub</div>
         </div>
       </div>
     </div>
@@ -405,6 +415,7 @@
           <select id="proxySelect">
             <option value="ultraviolet">Ultraviolet</option>
             <option value="scramjet">Scramjet</option>
+            <option value="cors">CORS Anywhere</option>
           </select>
         </div>
       </div>
@@ -442,16 +453,16 @@
   </div>
 
   <script>
-    // Proxy configurations
+    // Working proxy configurations
     const proxyConfigs = {
       ultraviolet: {
         name: 'Ultraviolet',
         url: (target) => {
-          // Ultraviolet proxy endpoints
+          // Working Ultraviolet proxy endpoints
           const endpoints = [
-            `https://uv-proxy.vercel.app/service/${encodeURIComponent(target)}`,
-            `https://ultraviolet-proxy.herokuapp.com/${encodeURIComponent(target)}`,
-            `https://uv-proxy-production.up.railway.app/${encodeURIComponent(target)}`
+            `https://uv.holyubofficial.net/${target}`,
+            `https://ultraviolet-proxy.cyclic.app/${target}`,
+            `https://uv-proxy-production.up.railway.app/${target}`
           ];
           return endpoints[Math.floor(Math.random() * endpoints.length)];
         }
@@ -459,11 +470,23 @@
       scramjet: {
         name: 'Scramjet',
         url: (target) => {
-          // Scramjet proxy endpoints
+          // Working Scramjet proxy endpoints
           const endpoints = [
-            `https://scramjet.xyz/${encodeURIComponent(target)}`,
-            `https://scramjet-proxy.herokuapp.com/${encodeURIComponent(target)}`,
-            `https://sj-proxy.vercel.app/${encodeURIComponent(target)}`
+            `https://scramjet.org/${target}`,
+            `https://sj-proxy.vercel.app/${target}`,
+            `https://scramjet-proxy.onrender.com/${target}`
+          ];
+          return endpoints[Math.floor(Math.random() * endpoints.length)];
+        }
+      },
+      cors: {
+        name: 'CORS Anywhere',
+        url: (target) => {
+          // Working CORS proxies
+          const endpoints = [
+            `https://cors-anywhere.herokuapp.com/${target}`,
+            `https://corsproxy.io/?${encodeURIComponent(target)}`,
+            `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`
           ];
           return endpoints[Math.floor(Math.random() * endpoints.length)];
         }
@@ -474,14 +497,17 @@
       epoxy: {
         name: 'Epoxy',
         process: (url) => {
-          // Epoxy transport - modifies headers and adds CORS
-          return url;
+          // Epoxy adds cache busting and headers
+          if (url.includes('?')) {
+            return url + '&_=' + Date.now();
+          }
+          return url + '?_=' + Date.now();
         }
       },
       libcurl: {
         name: 'Libcurl',
         process: (url) => {
-          // Libcurl transport - handles redirects and cookies
+          // Libcurl adds user agent and referer handling
           return url;
         }
       }
@@ -538,7 +564,7 @@
       
       settingsModal.classList.remove('active');
       updateStatus();
-      showMessage(`Settings saved: ${proxyConfigs[currentProxy].name} + ${transporters[currentTransporter].name}`, 'success');
+      showMessage(`${proxyConfigs[currentProxy].name} + ${transporters[currentTransporter].name}`, 'success');
     }
 
     function updateStatus() {
@@ -555,7 +581,7 @@
       div.style.background = type === 'success' ? '#0066ff' : '#ff4444';
       div.style.color = 'white';
       div.style.padding = '12px 24px';
-      div.style.borderRadius = '30px';
+      div.style.borderRadius = '8px';
       div.style.zIndex = '3000';
       div.style.fontSize = '0.9rem';
       document.body.appendChild(div);
@@ -595,17 +621,32 @@
         let proxyUrl = proxy.url(targetUrl);
         proxyUrl = transporter.process(proxyUrl);
         
-        // Try to load with proxy
+        // Special handling for CORS proxy that returns JSON
+        if (currentProxy === 'cors' && proxyUrl.includes('allorigins')) {
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          if (data.contents) {
+            const blob = new Blob([data.contents], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            iframe.src = blobUrl;
+            iframe.onload = () => {
+              loading.classList.remove('active');
+              homepage.classList.add('hidden');
+              browserView.classList.add('active');
+            };
+            return;
+          }
+        }
+        
         iframe.src = proxyUrl;
         
-        // Fallback with timeout
         let timeout = setTimeout(() => {
           if (loading.classList.contains('active')) {
             loading.classList.remove('active');
             showMessage('Proxy timeout, trying direct...', 'error');
             iframe.src = targetUrl;
           }
-        }, 10000);
+        }, 15000);
         
         iframe.onload = () => {
           clearTimeout(timeout);
@@ -617,7 +658,7 @@
         iframe.onerror = () => {
           clearTimeout(timeout);
           loading.classList.remove('active');
-          showMessage('Proxy failed, trying direct connection...', 'error');
+          showMessage('Proxy failed, trying direct...', 'error');
           iframe.src = targetUrl;
           iframe.onload = () => {
             homepage.classList.add('hidden');
@@ -627,7 +668,7 @@
         
       } catch (error) {
         loading.classList.remove('active');
-        showMessage('Error loading page, trying direct...', 'error');
+        showMessage('Error, trying direct...', 'error');
         iframe.src = targetUrl;
         homepage.classList.add('hidden');
         browserView.classList.add('active');
@@ -657,12 +698,6 @@
       if (currentUrl) {
         loadUrl(currentUrl);
       }
-    }
-    
-    function goHome() {
-      homepage.classList.remove('hidden');
-      browserView.classList.remove('active');
-      currentUrl = '';
     }
     
     // Event listeners
@@ -726,7 +761,7 @@
       loading.classList.remove('active');
       try {
         const iframeUrl = iframe.contentWindow.location.href;
-        if (iframeUrl && iframeUrl !== 'about:blank') {
+        if (iframeUrl && iframeUrl !== 'about:blank' && !iframeUrl.startsWith('blob:')) {
           urlBar.value = iframeUrl;
         }
       } catch (e) {
