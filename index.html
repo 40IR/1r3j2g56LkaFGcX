@@ -13,6 +13,45 @@
       height: 100vh;
       overflow: hidden;
     }
+    #top-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: #111;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      z-index: 20;
+      display: none;
+    }
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      margin: 0 4px;
+      stroke: #aaa;
+      transition: stroke 0.15s;
+    }
+    .nav-btn:hover { stroke: #eee; }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    #nav-search {
+      flex: 1;
+      margin: 0 12px;
+      padding: 8px 14px;
+      font-size: 1rem;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 999px;
+      color: #eee;
+      outline: none;
+    }
+    #nav-search:focus { border-color: #0066ff; }
     #ui {
       position: absolute;
       inset: 0;
@@ -25,7 +64,7 @@
       transition: opacity 0.4s;
     }
     #ui.hidden { opacity: 0; pointer-events: none; }
-    #top {
+    #top-right {
       position: absolute;
       top: 14px;
       right: 18px;
@@ -115,7 +154,31 @@
 </head>
 <body>
 
-  <div id="top">
+  <div id="top-nav">
+    <button class="nav-btn" id="btn-back" disabled>
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="btn-forward" disabled>
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="btn-refresh">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64-4.36A9 9 0 0 1 20.49 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <input type="text" id="nav-search" placeholder="Search or enter URL">
+    <button class="nav-btn" id="btn-close">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="top-right">
     <svg id="cog" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -131,9 +194,9 @@
     <div id="settings-panel">
       <label>Search engine</label>
       <select id="engine">
-        <option value="ddg-lite" selected>DuckDuckGo Lite</option>
+        <option value="bing" selected>Bing</option>
+        <option value="ddg-lite">DuckDuckGo Lite</option>
         <option value="startpage">Startpage</option>
-        <option value="bing">Bing</option>
         <option value="google">Google</option>
       </select>
     </div>
@@ -152,15 +215,21 @@
     const cog = document.getElementById('cog');
     const settingsPanel = document.getElementById('settings-panel');
     const engineSelect = document.getElementById('engine');
+    const topNav = document.getElementById('top-nav');
+    const btnBack = document.getElementById('btn-back');
+    const btnForward = document.getElementById('btn-forward');
+    const btnRefresh = document.getElementById('btn-refresh');
+    const btnClose = document.getElementById('btn-close');
+    const navSearch = document.getElementById('nav-search');
 
     const engines = {
       'ddg-lite': 'https://html.duckduckgo.com/html/?q=',
-      'startpage': 'https://www.startpage.com/sp/search?query=',
       'bing': 'https://www.bing.com/search?q=',
+      'startpage': 'https://www.startpage.com/sp/search?query=',
       'google': 'https://www.google.com/search?q='
     };
 
-    let currentEngine = 'ddg-lite';
+    let currentEngine = 'bing';
 
     engineSelect.addEventListener('change', () => currentEngine = engineSelect.value);
 
@@ -178,14 +247,17 @@
       frme.src = url;
       frme.style.display = 'block';
       ui.classList.add('hidden');
+      topNav.style.display = 'flex';
       settingsPanel.style.display = 'none';
       inp.blur();
+      navSearch.value = '';
     }
 
-    function back() {
+    function backToInput() {
       frme.style.display = 'none';
       frme.src = 'about:blank';
       ui.classList.remove('hidden');
+      topNav.style.display = 'none';
       setStatus('');
       inp.focus();
       inp.select();
@@ -206,19 +278,46 @@
       go(url);
     });
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') back();
-    });
+    // Navigation controls
+    btnBack.addEventListener('click', () => frme.contentWindow.history.back());
+    btnForward.addEventListener('click', () => frme.contentWindow.history.forward());
+    btnRefresh.addEventListener('click', () => frme.contentWindow.location.reload());
+    btnClose.addEventListener('click', backToInput);
 
-    document.addEventListener('click', e => {
-      if (frme.style.display === 'block' && !frme.contains(e.target) && !ui.contains(e.target)) {
-        back();
+    // Search from top bar
+    navSearch.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        let v = navSearch.value.trim();
+        if (!v) return;
+        let url;
+        if (!v.includes(' ') && v.includes('.')) {
+          url = v.startsWith('http') ? v : 'https://' + v;
+        } else {
+          url = engines[currentEngine] + encodeURIComponent(v);
+        }
+        go(url);
       }
     });
 
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') backToInput();
+    });
+
+    // Click outside to return (mobile)
+    document.addEventListener('click', e => {
+      if (frme.style.display === 'block' && !frme.contains(e.target) && !ui.contains(e.target) && !topNav.contains(e.target)) {
+        backToInput();
+      }
+    });
+
+    // Update back/forward buttons state
     frme.addEventListener('load', () => {
       setStatus('');
-      // No more loop detection / auto-back — just load and stay
+      try {
+        btnBack.disabled = !frme.contentWindow.history.length || frme.contentWindow.history.state === null;
+        btnForward.disabled = true; // simplistic – forward is harder to track
+      } catch {}
     });
   </script>
 </body>
