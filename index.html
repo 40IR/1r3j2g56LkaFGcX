@@ -66,7 +66,7 @@
     const input = document.getElementById('input');
     const msg = document.getElementById('msg');
 
-    function showMsg(text, dur = 5000) {
+    function showMsg(text, dur = 3000) {
       msg.textContent = text;
       msg.classList.add('show');
       if (dur) setTimeout(() => msg.classList.remove('show'), dur);
@@ -78,29 +78,28 @@
       if (!val) return;
 
       let url;
-      const isSearch = val.includes(' ') && !val.match(/\.[a-z]{2,}$/i) && !val.includes('://');
 
-      if (isSearch) {
-        // Lite DDG for better chance on restricted networks
+      // Check if it looks like a direct domain/URL (e.g. example.com, quizlet.one, sub.site.org)
+      // Has TLD-like ending, no spaces, optional www/subdomain
+      const looksLikeDomain = /^([a-z0-9-]+\.)*[a-z0-9-]+\.(com|org|net|io|edu|gov|co|app|dev|ai|me|tv|us|uk|ca|de|fr|jp|cn|in|ru|br|au|nz|info|biz|online|site|tech|store|shop|blog|club|xyz|live|pro|world|fun|space|media|news|games|chat|social|work|tools|design|studio|life|today|world|cloud|systems|digital|network|email|host|services|solutions|support|team|company|group|link|page|pages|wiki|guide|help|info|tips|zone|academy|school|university|college|center|hub|portal|app|apps|bot|dev|io|ly|gg|vc|sh|wtf|lol|wtf|rocks|cool|best|top|win|vip|pro|expert|guru|guru|ninja|king|queen|boss|god|king|queen|boss|god|king|queen|boss|god)$/i.test(val.split(' ')[0]) && !val.includes(' ');
+
+      if (looksLikeDomain) {
+        // Direct domain → add https:// if missing
+        url = val.startsWith('http') ? val : 'https://' + val;
+        showMsg('Going to site...', 1500);
+      } else {
+        // Treat as search (has spaces or no TLD) → use lite DuckDuckGo
         url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(val);
-      } else {
-        url = /^https?:\/\//i.test(val) ? val : 'https://' + val;
+        showMsg('Searching...', 1500);
       }
 
-      // Prefer new tab on iOS (more reliable than location.href in some filters)
-      const win = window.open(url, '_blank');
-      if (win) {
-        showMsg('Opened in new tab');
-      } else {
-        // Fallback: same-tab redirect if popup blocked
-        showMsg('Popup blocked — redirecting...', 2000);
-        setTimeout(() => { location.href = url; }, 1500);
-      }
+      // Redirect in same tab — reliable on iOS Safari
+      location.href = url;
 
       input.blur();
     });
 
-    // Optional: clear msg on input
+    // Clear msg when typing new input
     input.addEventListener('input', () => msg.classList.remove('show'));
   </script>
 </body>
