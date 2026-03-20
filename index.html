@@ -73,7 +73,7 @@
     const corsProxies = [
       'https://api.allorigins.win/raw?url=',
       'https://corsproxy.io/?',
-      'https://crossorigin.me/'  // older, may be flaky
+      'https://crossorigin.me/'
     ];
 
     function showMsg(text, dur = 5000) {
@@ -93,37 +93,34 @@
     async function fetchWithCors(url) {
       for (const proxy of corsProxies) {
         try {
-          const res = await fetch(proxy + encodeURIComponent(url), { mode: 'cors' });
+          const res = await fetch(proxy + encodeURIComponent(url));
           if (res.ok) return await res.text();
         } catch {}
       }
-      return null; // all failed
+      return null;
     }
 
     function openNewTab(url) {
       const win = window.open(url, '_blank');
-      if (win) {
-        showMsg('Opened in new tab (embedding blocked)');
-      } else {
-        showMsg('Popup blocked → allow popups or right-click → open in new tab');
-      }
+      if (win) showMsg('Opened in new tab (embedding blocked)');
+      else showMsg('Popup blocked — allow popups or right-click open');
     }
 
-    async function trySrcdocProxy(targetUrl) {
+    async function trySrcdoc(targetUrl) {
       cleanup();
-      showMsg('Trying srcdoc proxy...');
+      showMsg('Trying content proxy...');
 
       const html = await fetchWithCors(targetUrl);
       if (!html) {
-        showMsg('All CORS proxies failed → falling back');
         openNewTab(targetUrl);
         return;
       }
 
-      // Very basic rewrite: make links absolute (helps a bit)
+      // Basic rewrite for relative links
+      const base = new URL(targetUrl).origin;
       const rewritten = html
-        .replace(/href=["']\/([^"']*)["']/g, `href="${new URL('$1', targetUrl).href}"`)
-        .replace(/src=["']\/([^"']*)["']/g, `src="${new URL('$1', targetUrl).href}"`);
+        .replace(/href=["']\/([^"']*)["']/g, `href="${base}/$1"`)
+        .replace(/src=["']\/([^"']*)["']/g, `src="${base}/$1"`);
 
       const frame = document.createElement('iframe');
       frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999;background:white;';
@@ -134,7 +131,7 @@
         currentFrame = frame;
         document.body.appendChild(frame);
         document.body.style.overflow = 'hidden';
-        showMsg('Srcdoc loaded (limited JS support)', 3000);
+        showMsg('Lite content loaded (some features limited)', 4000);
       };
 
       frame.onerror = () => {
@@ -154,18 +151,17 @@
       frame.src = url;
 
       let timeout = setTimeout(() => {
-        if (!frame.contentDocument || !frame.contentDocument.body?.innerHTML?.trim()) {
+        if (!frame.contentDocument?.body?.innerHTML?.trim()) {
           frame.remove();
-          trySrcdocProxy(url); // fallback to srcdoc fetch
+          trySrcdoc(url);
         }
-      }, 1800);
+      }, 1500);
 
       frame.onload = () => {
         clearTimeout(timeout);
         try {
           const doc = frame.contentDocument || frame.contentWindow?.document;
           if (doc) {
-            // DDG image proxy
             doc.querySelectorAll('img').forEach(img => {
               if (img.src && !img.src.includes('duckduckgo')) {
                 img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
@@ -181,7 +177,7 @@
       frame.onerror = () => {
         clearTimeout(timeout);
         frame.remove();
-        trySrcdocProxy(url);
+        trySrcdoc(url);
       };
 
       document.body.appendChild(frame);
@@ -192,27 +188,32 @@
       let val = input.value.trim();
       if (!val) return;
 
-      let url = val;
-      if (!/^https?:\/\//i.test(val)) {
-        if (val.includes(' ') || !val.includes('.')) {
-          url = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
-        } else {
+      let url;
+      const isSearch = val.includes(' ') && !val.includes('.') && !val.includes('://');
+
+      if (isSearch) {
+        // Use DuckDuckGo lite/HTML version for better iframe chance
+        url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(val);
+        showMsg('Using DuckDuckGo lite (better compatibility)', 2500);
+      } else {
+        if (!/^https?:\/\//i.test(val)) {
           url = 'https://' + val;
+        } else {
+          url = val;
         }
       }
 
-      // Prefer iframe for known-good sites like quizlet.one
+      // Special-case quizlet.one → direct iframe
       if (url.includes('quizlet.one')) {
         tryIframe(url);
       } else {
-        // Try normal iframe first → fallback chain
-        tryIframe(url);
+        tryIframe(url);  // will fallback to srcdoc → new tab if needed
       }
 
       input.blur();
     });
 
-    // Exit with Esc or click outside
+    // Exit iframe
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && currentFrame) {
         cleanup();
