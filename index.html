@@ -1,115 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Notes</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: #000;
       color: #eee;
       height: 100vh;
-      margin: 0;
       overflow: hidden;
     }
-    #container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    #input-area {
+    #overlay {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 700px;
-      z-index: 10;
-      text-align: center;
+      inset: 0;
+      background: #000;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.4s;
+    }
+    #overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
     form {
+      width: 90%;
+      max-width: 720px;
       display: flex;
-      width: 100%;
     }
     input {
       flex: 1;
-      padding: 1.2rem 1.5rem;
-      font-size: 1.35rem;
+      padding: 1.1rem 1.4rem;
+      font-size: 1.3rem;
       background: #111;
       border: 1px solid #444;
       border-radius: 999px 0 0 999px;
-      color: #fff;
+      color: white;
       outline: none;
     }
-    input::placeholder { color: #888; }
-    input:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0,102,255,0.2); }
+    input::placeholder {
+      color: #777;
+    }
+    input:focus {
+      border-color: #0066ff;
+      box-shadow: 0 0 0 3px rgba(0,102,255,0.18);
+    }
     button {
       padding: 0 2.2rem;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       background: #0066ff;
       color: white;
       border: none;
       border-radius: 0 999px 999px 0;
       cursor: pointer;
     }
-    button:active { background: #0055dd; }
-    #msg {
-      margin-top: 1.5rem;
+    button:active {
+      background: #0055dd;
+    }
+    #status {
+      margin-top: 1.2rem;
       color: #888;
       font-size: 1rem;
     }
-    iframe {
-      position: absolute;
-      inset: 0;
+    #frame {
       width: 100%;
       height: 100%;
       border: none;
-      display: none;
       background: #fff;
-      z-index: 5;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <div id="container">
-    <div id="input-area">
-      <form id="form">
-        <input id="input" type="text" placeholder="Search notes or web" autocomplete="off" autofocus>
-        <button type="submit">→</button>
-      </form>
-      <div id="msg"></div>
-    </div>
-
-    <iframe id="frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"></iframe>
+  <div id="overlay">
+    <form id="form">
+      <input id="url" type="text" placeholder="Search or enter URL" autocomplete="off" autofocus />
+      <button type="submit">→</button>
+    </form>
+    <div id="status"></div>
   </div>
 
-  <script>
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const frame = document.getElementById('frame');
-    const msg = document.getElementById('msg');
-    const inputArea = document.getElementById('input-area');
+  <iframe id="frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation"></iframe>
 
-    function showMsg(text) {
-      msg.textContent = text;
+  <script>
+    const overlay = document.getElementById('overlay');
+    const frame   = document.getElementById('frame');
+    const form    = document.getElementById('form');
+    const input   = document.getElementById('url');
+    const status  = document.getElementById('status');
+
+    function setStatus(text = '', error = false) {
+      status.textContent = text;
+      status.style.color = error ? '#ff5555' : '#888';
     }
 
-    function loadInFrame(url) {
-      showMsg('Loading...');
+    function load(url) {
+      setStatus('Loading...');
       frame.src = url;
-      frame.onload = () => {
-        showMsg('');
-        frame.style.display = 'block';
-        inputArea.style.display = 'none'; // hide input after load
-      };
-      frame.onerror = () => {
-        showMsg('Failed to load — site may block embedding. Try a different URL.');
-        frame.style.display = 'none';
-        inputArea.style.display = 'block';
-      };
+      frame.style.display = 'block';
+      overlay.classList.add('hidden');
+      input.blur();
+    }
+
+    function reset() {
+      frame.style.display = 'none';
+      frame.src = 'about:blank';
+      overlay.classList.remove('hidden');
+      setStatus('');
+      input.focus();
+      input.select();
     }
 
     form.addEventListener('submit', e => {
@@ -118,43 +127,55 @@
       if (!val) return;
 
       let url;
-      // If looks like domain (no spaces, has TLD-ish ending)
-      if (!val.includes(' ') && val.match(/\.[a-z]{2,}$/i)) {
+
+      // Simple heuristic: if it contains a dot and no spaces → treat as domain
+      if (!val.includes(' ') && val.includes('.')) {
         url = val.startsWith('http') ? val : 'https://' + val;
       } else {
-        // Search or anything else → lite DDG
+        // Otherwise → search with DuckDuckGo lite (better chance of loading in iframe)
         url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(val);
       }
 
-      loadInFrame(url);
-      input.blur();
+      load(url);
     });
 
-    // Exit iframe / show input again
+    // Exit with Esc
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        frame.style.display = 'none';
-        frame.src = 'about:blank';
-        inputArea.style.display = 'block';
-        input.focus();
-        showMsg('');
+        reset();
       }
     });
 
-    // Click outside frame to exit (mobile friendly)
-    document.addEventListener('click', e => {
-      if (frame.style.display === 'block' && !frame.contains(e.target) && !inputArea.contains(e.target)) {
-        frame.style.display = 'none';
-        frame.src = 'about:blank';
-        inputArea.style.display = 'block';
+    // Optional: tap anywhere on overlay (outside input) to focus input
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay || e.target === status) {
         input.focus();
-        showMsg('');
       }
     });
 
-    // Optional: re-show input if frame unloads
-    frame.addEventListener('unload', () => {
-      inputArea.style.display = 'block';
+    // Detect load failure (CSP / X-Frame-Options block)
+    frame.addEventListener('load', () => {
+      try {
+        const doc = frame.contentDocument || frame.contentWindow?.document;
+        if (doc && doc.body && doc.body.innerHTML.trim() === '') {
+          setStatus('Site blocks embedding (CSP / frame protection)', true);
+          setTimeout(reset, 2800);
+        } else {
+          setStatus('');
+          // Optional: proxy images through DDG to reduce mixed-content issues
+          try {
+            doc.querySelectorAll('img[src]').forEach(img => {
+              if (img.src && !img.src.includes('duckduckgo.com')) {
+                img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
+              }
+            });
+          } catch {}
+        }
+      } catch (err) {
+        // Cross-origin error → most likely CSP block
+        setStatus('Blocked by site security rules', true);
+        setTimeout(reset, 2800);
+      }
     });
   </script>
 </body>
