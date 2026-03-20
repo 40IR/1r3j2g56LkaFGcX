@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Proxy</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, sans-serif;
       background: #000;
       color: #fff;
       height: 100vh;
@@ -21,62 +17,39 @@
       align-items: center;
       overflow: hidden;
     }
-    .main {
-      width: 100%;
-      max-width: 640px;
-      padding: 0 20px;
-      text-align: center;
-    }
-    h1 {
-      font-size: clamp(2.8rem, 10vw, 4.5rem);
-      font-weight: 700;
-      margin-bottom: 2rem;
-      letter-spacing: -1.5px;
-    }
-    form {
-      display: flex;
-      width: 100%;
-    }
+    .main { width: 100%; max-width: 640px; padding: 0 20px; text-align: center; }
+    h1 { font-size: clamp(2.8rem, 9vw, 4.2rem); font-weight: 700; margin-bottom: 1.8rem; letter-spacing: -1px; }
+    form { display: flex; width: 100%; }
     input {
       flex: 1;
-      padding: 1.1rem 1.4rem;
-      font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+      padding: 1rem 1.3rem;
+      font-size: clamp(1.05rem, 4vw, 1.3rem);
       background: #111;
       border: 1px solid #333;
       border-radius: 999px 0 0 999px;
       color: #fff;
       outline: none;
     }
-    input::placeholder {
-      color: #666;
-    }
-    input:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
-    }
+    input::placeholder { color: #777; }
+    input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
     button {
-      padding: 0 2rem;
-      font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+      padding: 0 1.8rem;
+      font-size: clamp(1.05rem, 4vw, 1.3rem);
       background: #3b82f6;
       color: white;
       border: none;
       border-radius: 0 999px 999px 0;
       cursor: pointer;
-      transition: background 0.12s;
     }
-    button:active {
-      background: #2563eb;
-    }
+    button:active { background: #2563eb; }
     #msg {
-      margin-top: 1.5rem;
+      margin-top: 1.4rem;
       color: #888;
-      font-size: 1rem;
+      font-size: 0.95rem;
       opacity: 0;
       transition: opacity 0.4s;
     }
-    #msg.show {
-      opacity: 1;
-    }
+    #msg.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -97,17 +70,19 @@
 
     let currentFrame = null;
 
-    function showMessage(text, duration = 4000) {
+    const corsProxies = [
+      'https://api.allorigins.win/raw?url=',
+      'https://corsproxy.io/?',
+      'https://crossorigin.me/'  // older, may be flaky
+    ];
+
+    function showMsg(text, dur = 5000) {
       msg.textContent = text;
       msg.classList.add('show');
-      if (duration) setTimeout(hideMessage, duration);
+      if (dur) setTimeout(() => msg.classList.remove('show'), dur);
     }
 
-    function hideMessage() {
-      msg.classList.remove('show');
-    }
-
-    function cleanupFrame() {
+    function cleanup() {
       if (currentFrame) {
         currentFrame.remove();
         currentFrame = null;
@@ -115,43 +90,86 @@
       document.body.style.overflow = '';
     }
 
-    function openInNewTab(url) {
+    async function fetchWithCors(url) {
+      for (const proxy of corsProxies) {
+        try {
+          const res = await fetch(proxy + encodeURIComponent(url), { mode: 'cors' });
+          if (res.ok) return await res.text();
+        } catch {}
+      }
+      return null; // all failed
+    }
+
+    function openNewTab(url) {
       const win = window.open(url, '_blank');
       if (win) {
-        showMessage('Opened in new tab (site blocks embedding)');
+        showMsg('Opened in new tab (embedding blocked)');
       } else {
-        showMessage('Popup blocked — allow popups or tap link manually');
+        showMsg('Popup blocked → allow popups or right-click → open in new tab');
       }
     }
 
-    function tryIframe(url) {
-      cleanupFrame();
+    async function trySrcdocProxy(targetUrl) {
+      cleanup();
+      showMsg('Trying srcdoc proxy...');
+
+      const html = await fetchWithCors(targetUrl);
+      if (!html) {
+        showMsg('All CORS proxies failed → falling back');
+        openNewTab(targetUrl);
+        return;
+      }
+
+      // Very basic rewrite: make links absolute (helps a bit)
+      const rewritten = html
+        .replace(/href=["']\/([^"']*)["']/g, `href="${new URL('$1', targetUrl).href}"`)
+        .replace(/src=["']\/([^"']*)["']/g, `src="${new URL('$1', targetUrl).href}"`);
 
       const frame = document.createElement('iframe');
-      frame.style.cssText = `
-        position: fixed; inset: 0; width: 100%; height: 100%;
-        border: none; z-index: 9999; background: white; display: block;
-      `;
+      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999;background:white;';
+      frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation';
+      frame.srcdoc = rewritten;
+
+      frame.onload = () => {
+        currentFrame = frame;
+        document.body.appendChild(frame);
+        document.body.style.overflow = 'hidden';
+        showMsg('Srcdoc loaded (limited JS support)', 3000);
+      };
+
+      frame.onerror = () => {
+        frame.remove();
+        openNewTab(targetUrl);
+      };
+
+      document.body.appendChild(frame);
+    }
+
+    function tryIframe(url) {
+      cleanup();
+
+      const frame = document.createElement('iframe');
+      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999;background:white;';
       frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation';
       frame.src = url;
 
-      let loadTimer = setTimeout(() => {
-        // If loads suspiciously fast or nothing appears → probably blocked
-        if (!frame.contentDocument || !frame.contentDocument.body.innerHTML.trim()) {
+      let timeout = setTimeout(() => {
+        if (!frame.contentDocument || !frame.contentDocument.body?.innerHTML?.trim()) {
           frame.remove();
-          openInNewTab(url);
+          trySrcdocProxy(url); // fallback to srcdoc fetch
         }
-      }, 1200);
+      }, 1800);
 
       frame.onload = () => {
-        clearTimeout(loadTimer);
+        clearTimeout(timeout);
         try {
-          // Optional: proxy images through DDG when possible
           const doc = frame.contentDocument || frame.contentWindow?.document;
           if (doc) {
-            doc.querySelectorAll('img:not([src^="https://external-content.duckduckgo.com"])').forEach(img => {
-              const orig = img.src;
-              if (orig) img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(orig);
+            // DDG image proxy
+            doc.querySelectorAll('img').forEach(img => {
+              if (img.src && !img.src.includes('duckduckgo')) {
+                img.src = 'https://external-content.duckduckgo.com/iu/?u=' + encodeURIComponent(img.src);
+              }
             });
           }
         } catch {}
@@ -161,9 +179,9 @@
       };
 
       frame.onerror = () => {
-        clearTimeout(loadTimer);
+        clearTimeout(timeout);
         frame.remove();
-        openInNewTab(url);
+        trySrcdocProxy(url);
       };
 
       document.body.appendChild(frame);
@@ -183,32 +201,28 @@
         }
       }
 
-      // Sites we know block iframes badly → skip straight to new tab
-      const knownBlockers = ['duckduckgo.com', 'roblox.com', 'youtube.com', 'accounts.google.com'];
-      const shouldSkipIframe = knownBlockers.some(d => url.includes(d));
-
-      if (shouldSkipIframe) {
-        openInNewTab(url);
+      // Prefer iframe for known-good sites like quizlet.one
+      if (url.includes('quizlet.one')) {
+        tryIframe(url);
       } else {
+        // Try normal iframe first → fallback chain
         tryIframe(url);
       }
 
       input.blur();
     });
 
-    // Exit iframe with Esc
+    // Exit with Esc or click outside
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && currentFrame) {
-        cleanupFrame();
+        cleanup();
         input.focus();
-        hideMessage();
       }
     });
 
-    // Refocus input on click outside (mobile friendly)
     document.addEventListener('click', e => {
       if (currentFrame && !e.target.closest('iframe')) {
-        cleanupFrame();
+        cleanup();
         input.focus();
       }
     });
